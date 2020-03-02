@@ -1,10 +1,19 @@
 package model;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Ship {
 
-	int startX, startY;
+    public List<Tile> tiles;
 
-	int endX, endY;
+    public boolean orient;
 
-	int type;
+    public Ship() {
+        tiles = new LinkedList<>();
+    }
+
+    public boolean isSunk() {
+        return tiles.stream().allMatch(t -> t.isHit);
+    }
 }
