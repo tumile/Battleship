@@ -43,14 +43,14 @@ public class TextView implements View {
 	}
 
 	@Override
-	public Position renderAttack(String player, Tile[][] map, String msg) {
+	public Position renderAttack(String player, Tile[][] map1, Tile[][] map2, String msg) {
 		Scanner scanner = new Scanner(System.in);
 
 		while (true) {
 			clearOutput();
 
 			System.out.printf("%s's turn\n", player);
-			draw(map, false);
+			draw(map1, false);
 
 			if (msg != null) {
 				System.out.println(msg);

@@ -5,10 +5,9 @@ import model.Position;
 import model.ShipType;
 import view.View;
 
-public class Game {
+import static model.Constants.*;
 
-	private String player1 = "Player 1";
-	private String player2 = "Player 2";
+public class Game {
 
 	private Board board1;
 	private Board board2;
@@ -26,11 +25,11 @@ public class Game {
 
 	private void prepareBoards() {
 		for (ShipType shipType : ShipType.values()) {
-			setShip(player1, board1, shipType);
+			setShip(PLAYER1, board1, shipType);
 		}
 
 		for (ShipType shipType : ShipType.values()) {
-			setShip(player2, board2, shipType);
+			setShip(PLAYER2, board2, shipType);
 		}
 	}
 
@@ -50,14 +49,14 @@ public class Game {
 		boolean turn = true;
 
 		while (true) {
-			player = turn ? player1 : player2;
+			player = turn ? PLAYER1 : PLAYER2;
 			Board board = turn ? board2 : board1;
 
 			String msg = null;
 			boolean ok = false;
 
 			while (!ok) {
-				Position pos = view.renderAttack(player, board.map, msg);
+				Position pos = view.renderAttack(player, board1.map, board2.map, msg);
 				ok = board.attack(pos);
 				msg = "You've already attacked this position";
 			}
