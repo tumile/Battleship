@@ -1,121 +1,178 @@
 package view;
 
-import controller.ArbitraryPosition;
-import controller.View;
+import model.Orientation;
+import model.Position;
+import model.ShipType;
 import model.Tile;
-import util.Constants;
 
-import java.util.Observable;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class TextView implements View {
 
-    private Tile[][] map;
+	@Override
+	public Position renderPlaceShip(String player, Tile[][] map, ShipType type, String msg) {
+		Scanner scanner = new Scanner(System.in);
 
-    @Override
-    public ArbitraryPosition getShipPosition(boolean player, int shipType) {
-        String playerName = player == Constants.P1 ? "Player 1" : "Player 2";
-        String shipName;
-        switch (shipType) {
-            case Constants.CARRIER:
-                shipName = "Carrier";
-                break;
-            case Constants.BATTLESHIP:
-                shipName = "Battleship";
-                break;
-            case Constants.CRUISER:
-                shipName = "Cruiser";
-                break;
-            case Constants.SUBMARINE:
-                shipName = "Submarine";
-                break;
-            default:
-                shipName = "Destroyer";
-                break;
-        }
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            System.out.printf("%s, choose your %s position\n", playerName, shipName);
-            System.out.print("Row (A - J), column (1 - 10), orientation (H or V) -- e.g: C,2,V  ");
-            String s = scanner.nextLine();
-            String[] input = s.split(",");
-            if (validateShipPositionInput(input)) {
-                ArbitraryPosition pos = new ArbitraryPosition();
-                pos.row = input[0].charAt(0) - 'A';
-                pos.col = Integer.parseInt(input[1]) - 1;
-                pos.orient = input[2].equals("H") ? Constants.HORIZONTAL : Constants.VERTICAL;
-                return pos;
-            }
-            System.out.println("Invalid input! Please follow the given instruction.");
-        }
-    }
+		while (true) {
+			clearOutput();
 
-    private boolean validateShipPositionInput(String[] input) {
-        if (input.length != 3) {
-            return false;
-        }
-        String row = input[0];
-        if (row.length() != 1 || row.charAt(0) < 'A' || row.charAt(0) > 'J') {
-            return false;
-        }
-        try {
-            int col = Integer.parseInt(input[1]);
-            if (col < 1 || col > 10) {
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        String orient = input[2];
-        if (orient.length() != 1 || (orient.charAt(0) != 'H' && orient.charAt(0) != 'V')) {
-            return false;
-        }
-        return true;
-    }
+			System.out.printf("%s's turn\n", player);
+			draw(map, true);
 
-    @Override
-    public ArbitraryPosition getNextMove(boolean player) {
-        return null;
-    }
+			if (msg != null) {
+				System.out.println(msg);
+			}
 
-    @Override
-    public void announceWinner(boolean player) {
+			System.out.printf("Choose your %s's position\n", type.name());
+			System.out.print("Row (A - J), column (0 - 9), orientation (H or V) -- e.g: C,2,V  ");
 
-    }
+			String s = scanner.nextLine();
+			String[] input = Arrays.stream(s.split(",")).map(String::toLowerCase).toArray(String[]::new);
 
-    @Override
-    public void draw() {
-        for (int r = 0; r < 11; r++) {
-            for (int c = 0; c < 11; c++) {
-                if (r == 0 && c == 0) {
-                    System.out.print(" ");
-                } else if (r == 0) {
-                    System.out.print(c);
-                } else if (c == 0) {
-                    System.out.print(Character.toString(64 + r));
-                } else {
-                    String s;
-                    if (map[r][c].isHit) {
-                        s = "x";
-                    } else if (map[r][c].ship != null) {
-                        if (map[r][c].ship.orient == Constants.HORIZONTAL) {
-                            s = "-";
-                        } else {
-                            s = "|";
-                        }
-                    } else {
-                        s = "~";
-                    }
-                    System.out.print(s);
-                }
-            }
-            System.out.println();
-        }
-    }
+			if (validateShipPositionInput(input)) {
+				return new Position(
+						input[0].charAt(0) - 'a',
+						Integer.parseInt(input[1]),
+						input[2].equals("h") ? Orientation.HORIZONTAL : Orientation.VERTICAL
+				);
+			}
 
-    @Override
-    public void update(Observable o, Object arg) {
-        map = (Tile[][]) arg;
-        draw();
-    }
+			msg = "Invalid input";
+		}
+	}
+
+	@Override
+	public Position renderAttack(String player, Tile[][] map, String msg) {
+		Scanner scanner = new Scanner(System.in);
+
+		while (true) {
+			clearOutput();
+
+			System.out.printf("%s's turn\n", player);
+			draw(map, false);
+
+			if (msg != null) {
+				System.out.println(msg);
+			}
+
+			System.out.println("Choose your next attack");
+			System.out.print("Row (A - J), column (0 - 9) -- e.g: A,5  ");
+
+			String s = scanner.nextLine();
+			String[] input = Arrays.stream(s.split(",")).map(String::toLowerCase).toArray(String[]::new);
+
+			if (validateAttackPositionInput(input)) {
+				return new Position(
+						input[0].charAt(0) - 'a',
+						Integer.parseInt(input[1]),
+						null
+				);
+			}
+
+			msg = "Invalid input";
+		}
+	}
+
+	@Override
+	public void renderWinner(String player) {
+		System.out.printf("%s has won the game!\n", player);
+	}
+
+	private void clearOutput() {
+		System.out.println("\033[H\033[2J");
+		System.out.flush();
+	}
+
+	private boolean validateShipPositionInput(String[] input) {
+		if (input.length != 3) {
+			return false;
+		}
+		String orient = input[2];
+		if (!orient.equals("h") && !orient.equals("v")) {
+			return false;
+		}
+		return validatePosition(input[0], input[1]);
+	}
+
+	private boolean validateAttackPositionInput(String[] input) {
+		if (input.length != 2) {
+			return false;
+		}
+		return validatePosition(input[0], input[1]);
+	}
+
+	private boolean validatePosition(String row, String col) {
+		if (row.length() != 1 || row.charAt(0) < 'a' || row.charAt(0) > 'j') {
+			return false;
+		}
+		try {
+			int n = Integer.parseInt(col);
+			if (n < 0 || n > 9) {
+				return false;
+			}
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
+
+	public void draw(Tile[][] map, boolean showShips) {
+		for (int r = 0; r < 11; r++) {
+			for (int c = 0; c < 11; c++) {
+				if (r == 0 && c == 0) {
+					System.out.print(" ");
+				} else if (r == 0) {
+					System.out.print("  " + (c - 1));
+				} else if (c == 0) {
+					System.out.print(Character.toString(64 + r) + " ");
+				} else {
+					String s;
+					if (map[r - 1][c - 1].isHit) {
+						if (map[r - 1][c - 1].ship == null) {
+							s = "❌";
+						} else {
+							s = "\uD83D\uDCA5";
+						}
+					} else if (map[r - 1][c - 1].ship != null) {
+						s = showShips ? "\uD83D\uDEA2" : "\uD83C\uDF0A";
+					} else {
+						s = "\uD83C\uDF0A";
+					}
+					System.out.print(s);
+				}
+			}
+			System.out.println();
+		}
+	}
+
+
+//	public void draw(Tile[][] map1, Tile[][] map2, boolean showShips) {
+//		for (int r = 0; r < 11; r++) {
+//			for (int c = 0; c < 11; c++) {
+//				if (r == 0 && c == 0) {
+//					System.out.print(" ");
+//				} else if (r == 0) {
+//					System.out.print(c - 1);
+//				} else if (c == 0) {
+//					System.out.print(Character.toString(64 + r));
+//				} else {
+//					String s;
+//					if (map[r - 1][c - 1].isHit) {
+//						if (map[r - 1][c - 1].ship == null) {
+//							s = "x";
+//						} else {
+//							s = "*";
+//						}
+//					} else if (map[r - 1][c - 1].ship != null) {
+//						s = showShips ? "o" : "~";
+//					} else {
+//						s = "~";
+//					}
+//					System.out.print(s);
+//				}
+//			}
+//			System.out.println();
+//		}
+//	}
 }

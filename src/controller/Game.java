@@ -1,61 +1,74 @@
 package controller;
 
 import model.Board;
-import util.Constants;
+import model.Position;
+import model.ShipType;
+import view.View;
 
 public class Game {
 
-    private Board board1, board2;
+	private String player1 = "Player 1";
+	private String player2 = "Player 2";
 
-    private View view;
+	private Board board1;
+	private Board board2;
 
-    public Game(View view) {
-        this.view = view;
+	private View view;
 
-        board1 = new Board();
-        board1.addObserver(view);
+	public Game(View view) {
+		board1 = new Board();
+		board2 = new Board();
+		this.view = view;
 
-        board2 = new Board();
-        board2.addObserver(view);
+		prepareBoards();
+		startGame();
+	}
 
-        prepareBoards();
+	private void prepareBoards() {
+		for (ShipType shipType : ShipType.values()) {
+			setShip(player1, board1, shipType);
+		}
 
-        boolean player = Constants.P1;
+		for (ShipType shipType : ShipType.values()) {
+			setShip(player2, board2, shipType);
+		}
+	}
 
-        while (true) {
-            ArbitraryPosition pos = view.getNextMove(player);
-            if (player == Constants.P1) {
-                board2.hit(pos.row, pos.col);
-                if (board2.allShipsSunk()) {
-                    view.announceWinner(Constants.P1);
-                    break;
-                }
-            } else {
-                board1.hit(pos.row, pos.col);
-                if (board1.allShipsSunk()) {
-                    view.announceWinner(Constants.P2);
-                    break;
-                }
-            }
-        }
-    }
+	private void setShip(String player, Board board, ShipType type) {
+		String msg = null;
+		boolean ok = false;
 
-    private void prepareBoards() {
-        for (int ship : Constants.SHIPS) {
-            while (true) {
-                ArbitraryPosition pos = view.getShipPosition(Constants.P1, ship);
-                if (board1.setShip(pos.row, pos.col, pos.orient, ship)) {
-                    break;
-                }
-            }
-        }
-        for (int ship : Constants.SHIPS) {
-            while (true) {
-                ArbitraryPosition pos = view.getShipPosition(Constants.P2, ship);
-                if (board2.setShip(pos.row, pos.col, pos.orient, ship)) {
-                    break;
-                }
-            }
-        }
-    }
+		while (!ok) {
+			Position pos = view.renderPlaceShip(player, board.map, type, msg);
+			ok = board.placeShip(pos, type);
+			msg = "Ship cannot be placed here";
+		}
+	}
+
+	private void startGame() {
+		String player;
+		boolean turn = true;
+
+		while (true) {
+			player = turn ? player1 : player2;
+			Board board = turn ? board2 : board1;
+
+			String msg = null;
+			boolean ok = false;
+
+			while (!ok) {
+				Position pos = view.renderAttack(player, board.map, msg);
+				ok = board.attack(pos);
+				msg = "You've already attacked this position";
+			}
+
+			if (board.lost()) {
+				break;
+			}
+
+			turn = !turn;
+		}
+
+		view.renderWinner(player);
+	}
 }
