@@ -187,7 +187,7 @@ public class GUIView extends View {
                     super.paint(g);
 
                     try {
-                        BufferedImage image = ImageIO.read(new File("surface.jpg"));
+                        Image image = ImageIO.read(GUIView.class.getResource("surface.jpg"));
                         g.drawImage(image, 0, 0, TILE_SIZE * 10, TILE_SIZE * 10, null, null);
 
                         for (int col = 0; col < 10; col++) {
