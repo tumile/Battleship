@@ -1,5 +1,7 @@
 package model;
 
+import model.constant.Orientation;
+
 public class Position {
 
 	public int row;

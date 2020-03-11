@@ -1,8 +1,8 @@
-package model;
+package model.constant;
 
 import java.util.Map;
 
-import static model.ShipType.*;
+import static model.constant.ShipType.*;
 
 public interface Constants {
 

@@ -1,18 +1,21 @@
 package view;
 
-import model.Orientation;
-import model.Position;
-import model.ShipType;
+import model.constant.Orientation;
+import model.constant.Player;
+import model.constant.ShipType;
 import model.Tile;
 
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class TextView implements View {
+public class TextView extends View {
 
     @Override
-    public Position renderPlaceShip(String player, Tile[][] map, ShipType type, String msg) {
+    public void renderPlaceShip(Player player, ShipType type, Tile[][] map, String msg) {
         Scanner scanner = new Scanner(System.in);
+
+        int row, col;
+        Orientation orient;
 
         while (true) {
             clearOutput();
@@ -31,26 +34,29 @@ public class TextView implements View {
             String[] input = Arrays.stream(s.split(",")).map(String::toLowerCase).toArray(String[]::new);
 
             if (validateShipPositionInput(input)) {
-                return new Position(
-                        input[0].charAt(0) - 'a',
-                        Integer.parseInt(input[1]),
-                        input[2].equals("h") ? Orientation.HORIZONTAL : Orientation.VERTICAL
-                );
+                row = input[0].charAt(0) - 'a';
+                col = Integer.parseInt(input[1]);
+                orient = input[2].equals("h") ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+                break;
             }
 
             msg = "Invalid input";
         }
+
+        controller.placeShip(player, row, col, orient, type);
     }
 
     @Override
-    public Position renderAttack(String player, Tile[][] map1, Tile[][] map2, String msg) {
+    public void renderAttack(Player player, Tile[][] map1, Tile[][] map2, String msg) {
         Scanner scanner = new Scanner(System.in);
+
+        int row, col;
 
         while (true) {
             clearOutput();
 
             System.out.printf("%s's turn\n", player);
-            draw(map1, false);
+            draw(map1, map2, false);
 
             if (msg != null) {
                 System.out.println(msg);
@@ -63,19 +69,19 @@ public class TextView implements View {
             String[] input = Arrays.stream(s.split(",")).map(String::toLowerCase).toArray(String[]::new);
 
             if (validateAttackPositionInput(input)) {
-                return new Position(
-                        input[0].charAt(0) - 'a',
-                        Integer.parseInt(input[1]),
-                        null
-                );
+                row = input[0].charAt(0) - 'a';
+                col = Integer.parseInt(input[1]);
+                break;
             }
 
             msg = "Invalid input";
         }
+
+        controller.attack(player, row, col);
     }
 
     @Override
-    public void renderWinner(String player) {
+    public void renderWinner(Player player) {
         System.out.printf("%s has won the game!\n", player);
     }
 
@@ -118,32 +124,67 @@ public class TextView implements View {
     }
 
     public void draw(Tile[][] map, boolean showShips) {
-        for (int r = 0; r < 11; r++) {
-            for (int c = 0; c < 11; c++) {
-                if (r == 0 && c == 0) {
+        for (int row = 0; row < 11; row++) {
+            for (int col = 0; col < 11; col++) {
+                if (row == 0 && col == 0) {
                     System.out.print(" ");
-                } else if (r == 0) {
-                    System.out.print(" " + (c - 1));
-                } else if (c == 0) {
-                    System.out.print(Character.toString(64 + r) + " ");
+                } else if (row == 0) {
+                    System.out.print(" " + (col - 1));
+                } else if (col == 0) {
+                    System.out.print(Character.toString(64 + row) + " ");
                 } else {
-                    String s = "";
-                    Tile tile = map[r - 1][c - 1];
-                    if (tile.ship != null) {
-                        if (tile.isHit) {
-                            s = "\uD83D\uDCA5";
-                        } else if (showShips) {
-                            s = "\uD83D\uDEA2";
-                        }
-                    } else if (tile.isHit) {
-                        s = "❌";
-                    } else {
-                        s = "\uD83C\uDF0A";
-                    }
-                    System.out.print(s);
+                    System.out.print(getSymbol(map[row - 1][col - 1], showShips));
                 }
             }
             System.out.println();
         }
+    }
+
+    public void draw(Tile[][] map1, Tile[][] map2, boolean showShips) {
+        for (int row = 0; row < 11; row++) {
+            System.out.print(" ");
+            for (int col = 0; col < 11; col++) {
+                if (row == 0 && col == 0) {
+                    System.out.print(" ");
+                } else if (row == 0) {
+                    System.out.print(" " + (col - 1));
+                } else if (col == 0) {
+                    System.out.print(Character.toString(64 + row) + " ");
+                } else {
+                    System.out.print(getSymbol(map1[row - 1][col - 1], showShips));
+                }
+            }
+            System.out.print("  ");
+            for (int col = 0; col < 11; col++) {
+                if (row == 0 && col == 0) {
+                    System.out.print(" ");
+                } else if (row == 0) {
+                    System.out.print(" " + (col - 1));
+                } else if (col == 0) {
+                    System.out.print(Character.toString(64 + row) + " ");
+                } else {
+                    System.out.print(getSymbol(map2[row - 1][col - 1], showShips));
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    private String getSymbol(Tile tile, boolean showShips) {
+        String s;
+        if (tile.ship != null) {
+            if (tile.isHit) {
+                s = "\uD83D\uDCA5";
+            } else if (showShips) {
+                s = "\uD83D\uDEA2";
+            } else {
+                s = "\uD83C\uDF0A";
+            }
+        } else if (tile.isHit) {
+            s = "❌";
+        } else {
+            s = "\uD83C\uDF0A";
+        }
+        return s;
     }
 }

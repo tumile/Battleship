@@ -5,19 +5,18 @@ import view.View;
 
 public class Battleship {
 
-	public static void main(String[] args) {
-		View view;
+    public static void main(String[] args) {
+        if (args.length != 1 || (!args[0].equals("text") && !args[0].equals("gui"))) {
+            System.out.println("Please run with argument \"text\" or \"gui\" to select view mode");
+            return;
+        }
 
-		if (args.length != 1 || (!args[0].equals("text") && !args[0].equals("gui"))) {
-			System.out.println("Please run with argument \"text\" or \"gui\" to select view mode");
-			return;
-		}
-		if (args[0].equals("text")) {
-			view = new TextView();
-		} else {
-			view = new GUIView();
-		}
+        Game game = new Game();
 
-		new Game(view);
-	}
+        View view = args[0].equals("text") ? new TextView() : new GUIView();
+        view.setController(game);
+
+        game.setView(view);
+        game.start();
+    }
 }

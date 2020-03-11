@@ -1,4 +1,4 @@
-package model;
+package model.constant;
 
 public enum ShipType {
 	CARRIER,

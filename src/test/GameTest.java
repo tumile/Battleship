@@ -2,9 +2,9 @@ package test;
 
 import controller.Game;
 import view.View;
-import model.Orientation;
-import model.Position;
-import model.ShipType;
+import model.constant.Orientation;
+import model.constant.Player;
+import model.constant.ShipType;
 import model.Tile;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +13,11 @@ public class GameTest {
 
     @Before
     public void setup() {
-        new Game(new TestView());
+        Game game = new Game();
+        View view = new TestView();
+        view.setController(game);
+        game.setView(view);
+        game.start();
     }
 
     @Test
@@ -21,26 +25,37 @@ public class GameTest {
         // if this test passes, it means the game executed successfully with TestView
     }
 
-    static class TestView implements View {
+    static class TestView extends View {
 
-        private int placeShipCount = 0;
-        private int attackCount = 0;
+        private int placeShipCount1 = 0;
+        private int placeShipCount2 = 0;
+
+        private int attackCount1 = 0;
+        private int attackCount2 = 0;
 
         @Override
-        public Position renderPlaceShip(String player, Tile[][] map, ShipType type, String msg) {
-            return new Position(placeShipCount++, 0, Orientation.HORIZONTAL);
+        public void renderPlaceShip(Player player, ShipType type, Tile[][] map, String msg) {
+            int row = player == Player.Player1 ? placeShipCount1++ : placeShipCount2++;
+            controller.placeShip(player, row, 0, Orientation.HORIZONTAL, type);
         }
 
         @Override
-        public Position renderAttack(String player, Tile[][] map1, Tile[][] map2, String msg) {
-            int row = attackCount / 10, col = attackCount % 10;
-            attackCount++;
-            return new Position(row, col, Orientation.HORIZONTAL);
+        public void renderAttack(Player player, Tile[][] map1, Tile[][] map2, String msg) {
+            int row, col;
+            if (player == Player.Player1) {
+                row = attackCount1 / 10;
+                col = attackCount1 % 10;
+                attackCount1++;
+            } else {
+                row = attackCount2 / 10;
+                col = attackCount2 % 10;
+                attackCount2++;
+            }
+            controller.attack(player, row, col);
         }
 
         @Override
-        public void renderWinner(String player) {
-
+        public void renderWinner(Player player) {
         }
     }
 }

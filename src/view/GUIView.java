@@ -1,9 +1,9 @@
 package view;
 
-import model.Orientation;
-import model.Position;
-import model.ShipType;
 import model.Tile;
+import model.constant.Orientation;
+import model.constant.Player;
+import model.constant.ShipType;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -14,20 +14,14 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static model.Constants.PLAYER1;
-import static model.Constants.PLAYER2;
-
-public class GUIView implements View {
+public class GUIView extends View {
 
     private static final int TILE_SIZE = 30;
 
-    private Container pane;
-
     private JFrame screen;
+    private Container pane;
 
     public GUIView() {
         screen = new JFrame();
@@ -35,17 +29,15 @@ public class GUIView implements View {
         screen.setSize(720, 480);
         screen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         screen.setVisible(true);
+
         pane = screen.getContentPane();
     }
 
     @Override
-    public Position renderPlaceShip(String player, Tile[][] map, ShipType type, String msg) {
-        pane.removeAll();
-
-        AtomicInteger row = new AtomicInteger();
-        AtomicInteger col = new AtomicInteger();
+    public void renderPlaceShip(Player player, ShipType type, Tile[][] map, String msg) {
         AtomicReference<Orientation> orient = new AtomicReference<>(Orientation.HORIZONTAL);
-        AtomicBoolean set = new AtomicBoolean();
+
+        pane.removeAll();
 
         // Create top labels
         JPanel labelPanel = new JPanel();
@@ -68,10 +60,9 @@ public class GUIView implements View {
         board.setListener(new MouseInputAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                row.set(e.getY() / TILE_SIZE);
-                col.set(e.getX() / TILE_SIZE);
-                set.set(true);
+                int row = e.getY() / TILE_SIZE;
+                int col = e.getX() / TILE_SIZE;
+                controller.placeShip(player, row, col, orient.get(), type);
             }
         });
 
@@ -105,20 +96,11 @@ public class GUIView implements View {
 
         screen.validate();
         screen.repaint();
-
-        while (!set.get()) {
-        }
-
-        return new Position(row.get(), col.get(), orient.get());
     }
 
     @Override
-    public Position renderAttack(String player, Tile[][] map1, Tile[][] map2, String msg) {
+    public void renderAttack(Player player, Tile[][] map1, Tile[][] map2, String msg) {
         pane.removeAll();
-
-        AtomicInteger row = new AtomicInteger();
-        AtomicInteger col = new AtomicInteger();
-        AtomicBoolean set = new AtomicBoolean();
 
         // Create top labels
         JPanel labelPanel = new JPanel();
@@ -140,24 +122,17 @@ public class GUIView implements View {
         JPanel boardPanel = new JPanel();
         boardPanel.setLayout(new FlowLayout());
 
-        Board board1 = new Board(map1, false, player.equals(PLAYER1));
-        Board board2 = new Board(map2, false, player.equals(PLAYER2));
+        Board board1 = new Board(map1, false, player == Player.Player1);
+        Board board2 = new Board(map2, false, player == Player.Player2);
 
-        MouseListener listener = new MouseInputAdapter() {
+        (player == Player.Player1 ? board2 : board1).setListener(new MouseInputAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                row.set(e.getY() / TILE_SIZE);
-                col.set(e.getX() / TILE_SIZE);
-                set.set(true);
+                int row = e.getY() / TILE_SIZE;
+                int col = e.getX() / TILE_SIZE;
+                controller.attack(player, row, col);
             }
-        };
-
-        if (player.equals(PLAYER1)) {
-            board2.setListener(listener);
-        } else {
-            board1.setListener(listener);
-        }
+        });
 
         boardPanel.add(board1);
         boardPanel.add(board2);
@@ -173,15 +148,10 @@ public class GUIView implements View {
 
         screen.validate();
         screen.repaint();
-
-        while (!set.get()) {
-        }
-
-        return new Position(row.get(), col.get(), null);
     }
 
     @Override
-    public void renderWinner(String player) {
+    public void renderWinner(Player player) {
         JOptionPane.showConfirmDialog(null, player + " has won!", "", JOptionPane.OK_CANCEL_OPTION);
         screen.dispose();
     }
