@@ -17,7 +17,7 @@ public class Board {
 
 	public boolean placeShip(Position pos, ShipType type) {
 		int row = pos.row, col = pos.col;
-		if (row < 0 || row > 10 || col < 0 || col > 10) {
+		if (row < 0 || row > 9 || col < 0 || col > 9) {
 			return false;
 		}
 		if (pos.orient == Orientation.HORIZONTAL) {
@@ -57,6 +57,9 @@ public class Board {
 
 	public boolean attack(Position pos) {
 		int row = pos.row, col = pos.col;
+		if (row < 0 || row > 9 || col < 0 || col > 9) {
+			return false;
+		}
 		if (map[row][col].isHit) {
 			return false;
 		}
