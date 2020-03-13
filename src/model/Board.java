@@ -24,12 +24,12 @@ public class Board {
         return shipCount == 5;
     }
 
-    public ShipType getNextShip() {
-        return shipCount < 5 ? ShipType.values()[shipCount] : null;
-    }
-
     public boolean isLost() {
         return shipCount == 0;
+    }
+
+    public ShipType getNextShip() {
+        return shipCount < 5 ? ShipType.values()[shipCount] : null;
     }
 
     public boolean placeShip(int row, int col, Orientation orient, ShipType type) {
