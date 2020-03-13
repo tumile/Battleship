@@ -5,13 +5,9 @@ import java.util.List;
 
 public class Ship {
 
-	public List<Tile> tiles;
+    public List<Tile> tiles = new LinkedList<>();
 
-	public Ship() {
-		tiles = new LinkedList<>();
-	}
-
-	public boolean isSunk() {
-		return tiles.stream().allMatch(t -> t.isHit);
-	}
+    public boolean isSunk() {
+        return tiles.stream().allMatch(t -> t.isHit);
+    }
 }

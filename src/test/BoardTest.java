@@ -2,7 +2,6 @@ package test;
 
 import model.Board;
 import model.constant.Orientation;
-import model.Position;
 import model.constant.ShipType;
 import org.junit.Test;
 

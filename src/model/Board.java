@@ -8,13 +8,14 @@ public class Board {
 
     public Tile[][] map;
 
-    public int shipCount = 0;
+    private int shipCount = 0;
 
     public Board() {
         map = new Tile[10][10];
+
         for (int r = 0; r < 10; r++) {
             for (int c = 0; c < 10; c++) {
-                map[r][c] = new Tile(null);
+                map[r][c] = new Tile();
             }
         }
     }
